@@ -90,20 +90,34 @@ function buildDial() {
   el('stop', { offset: '0%', 'stop-color': '#fff6d8' }, core);
   el('stop', { offset: '60%', 'stop-color': '#ffce68' }, core);
   el('stop', { offset: '100%', 'stop-color': '#e8952f' }, core);
+  const mGlow = el('radialGradient', { id: 'moonGlowG' }, defs);
+  el('stop', { offset: '0%', 'stop-color': '#cdd9f4', 'stop-opacity': '0.5' }, mGlow);
+  el('stop', { offset: '100%', 'stop-color': '#cdd9f4', 'stop-opacity': '0' }, mGlow);
 
   const SKY_R = 100 - SKY_ORBIT;
   const sun = el('g', { id: 'sunMark', opacity: 0 });
   el('title', {}, sun).textContent = '';
-  el('circle', { cx: 100, cy: SKY_R, r: 7.5, fill: 'url(#sunGlowG)' }, sun);
-  el('circle', { cx: 100, cy: SKY_R, r: 3.1, fill: 'url(#sunCoreG)', stroke: 'rgba(255,246,216,0.6)', 'stroke-width': 0.4 }, sun);
+  el('circle', { cx: 100, cy: SKY_R, r: 13, fill: 'url(#sunGlowG)' }, sun);
+  for (let i = 0; i < 8; i++) {
+    const a = (i * 45 * Math.PI) / 180;
+    el('line', {
+      x1: 100 + 7.2 * Math.cos(a), y1: SKY_R + 7.2 * Math.sin(a),
+      x2: 100 + 9.8 * Math.cos(a), y2: SKY_R + 9.8 * Math.sin(a),
+      stroke: '#ffce68', 'stroke-width': 1.4, 'stroke-linecap': 'round', opacity: 0.9,
+    }, sun);
+  }
+  el('circle', { cx: 100, cy: SKY_R, r: 5.4, fill: 'url(#sunCoreG)', stroke: 'rgba(255,246,216,0.6)', 'stroke-width': 0.5 }, sun);
 
   const moon = el('g', { id: 'moonMark', opacity: 0 });
   el('title', {}, moon).textContent = '';
-  el('circle', { cx: 100, cy: SKY_R, r: 3.3, fill: '#141b2c', stroke: 'rgba(220,228,246,0.35)', 'stroke-width': 0.45 }, moon);
-  el('path', { id: 'moonLit', d: '', fill: '#dde4f2' }, moon);
+  // Inner group counter-rotates so the crescent stays upright on screen.
+  const moonSprite = el('g', { id: 'moonSprite' }, moon);
+  el('circle', { cx: 100, cy: SKY_R, r: 10.5, fill: 'url(#moonGlowG)' }, moonSprite);
+  el('circle', { cx: 100, cy: SKY_R, r: 5.8, fill: '#141b2c', stroke: 'rgba(220,228,246,0.4)', 'stroke-width': 0.55 }, moonSprite);
+  el('path', { id: 'moonLit', d: '', fill: '#e3e9f6' }, moonSprite);
 }
 
-const SKY_ORBIT = 90.5; // orbit radius of the sun/moon pips (SVG units)
+const SKY_ORBIT = 109; // orbit radius of the sun/moon sprites — outside the bezel (r≈94)
 
 function updateSky() {
   const o = state.origin;
@@ -123,7 +137,8 @@ function updateSky() {
   };
   place('sunMark', sun);
   place('moonMark', moon);
-  $('moonLit').setAttribute('d', moonPhasePath(100, 100 - SKY_ORBIT, 3.3, phase));
+  $('moonSprite').setAttribute('transform', `rotate(${-moon.azimuth} 100 ${100 - SKY_ORBIT})`);
+  $('moonLit').setAttribute('d', moonPhasePath(100, 100 - SKY_ORBIT, 5.8, phase));
   $('moonMark').querySelector('title').textContent += ` · ${Math.round(fraction * 100)}% lit`;
 }
 
