@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>WhereIsIt — a compass to anywhere</title>
+  <meta name="description" content="Search any place on Earth and a compass points at it — with the real distance from where you are.">
+  <meta name="theme-color" content="#0f1420" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f5f6f8" media="(prefers-color-scheme: light)">
+  <meta property="og:title" content="WhereIsIt — a compass to anywhere">
+  <meta property="og:description" content="Which way is Tulum? Mount Everest? Search it and the compass points there.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top">
+    <h1 class="brand">where<span>is</span>it</h1>
+    <button id="unitToggle" class="unit-toggle" type="button" aria-label="Switch distance units">km</button>
+  </header>
+
+  <main>
+    <form id="searchForm" class="search" autocomplete="off">
+      <input id="searchInput" type="search" placeholder="Search a place… Tulum, Mount Everest, anywhere"
+             aria-label="Search a place" required>
+      <button type="submit" aria-label="Search">→</button>
+    </form>
+
+    <div id="chips" class="chips" aria-label="Suggested destinations"></div>
+
+    <p id="status" class="status" role="status"></p>
+
+    <div class="compass-wrap">
+      <div class="compass" id="compassBox">
+        <svg id="dial" class="dial" viewBox="0 0 200 200" aria-hidden="true"></svg>
+        <svg id="needle" class="needle" viewBox="0 0 200 200" aria-hidden="true">
+          <polygon points="100,22 92,108 108,108" class="needle-head"/>
+          <polygon points="92,108 108,108 100,150" class="needle-tail"/>
+          <circle cx="100" cy="100" r="7" class="needle-hub"/>
+        </svg>
+      </div>
+      <button id="enableCompass" class="enable-compass" type="button" hidden>Enable live compass</button>
+      <p id="compassMode" class="compass-mode" hidden>North-up mode — the needle shows the true direction, but won’t rotate with your device.</p>
+    </div>
+
+    <section id="readout" class="readout" hidden>
+      <h2 id="placeName"></h2>
+      <p class="distance"><span id="distance"></span> <span class="dot">·</span> <span id="direction"></span></p>
+      <p id="funFact" class="fun-fact" title="Tap for another fact"></p>
+      <button id="shareBtn" class="share" type="button">Share this direction</button>
+    </section>
+
+    <details class="explainer">
+      <summary>Why is it pointing there?</summary>
+      <p>The needle follows the <strong>great circle</strong> — the genuinely shortest path over the curved Earth.
+      It can look surprising on a flat map: from New York, Tokyo is almost due <em>north</em>, over the Arctic.
+      Trust the needle; it’s how pilots fly.</p>
+    </details>
+
+    <p class="origin-row">
+      <span id="originLabel">Locating you…</span>
+      <button id="changeOrigin" class="link-btn" type="button">Choose starting location</button>
+    </p>
+    <form id="originForm" class="search origin-form" autocomplete="off" hidden>
+      <input id="originInput" type="search" placeholder="Start from… e.g. Berlin" aria-label="Starting location">
+      <button type="submit" aria-label="Set starting location">→</button>
+    </form>
+  </main>
+
+  <footer>
+    <p>Geocoding © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</p>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
