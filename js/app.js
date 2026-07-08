@@ -2,6 +2,7 @@ import { initialBearing, haversineKm, cardinal, formatDistance, funFacts } from 
 import { Compass, SmoothRotator } from './compass.js';
 import { SUGGESTIONS, geocode, shareUrl, targetFromUrl, NotFoundError } from './search.js';
 import { initScene } from './scene.js';
+import { sunPosition, moonPosition, moonIllumination, moonPhasePath } from './sky.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -77,6 +78,53 @@ function buildDial() {
     el('text', { ...attrs, y: y + 0.9, class: 'cardinal-shadow' }).textContent = label;
     el('text', { ...attrs, class: label === 'N' ? 'cardinal north' : 'cardinal' }).textContent = label;
   }
+
+  // Sun & moon bezel pips: ride the dial so they always sit at their real
+  // azimuth. Positions filled in by updateSky() once we know the origin.
+  const defs = el('defs', {});
+  const glow = el('radialGradient', { id: 'sunGlowG' }, defs);
+  el('stop', { offset: '0%', 'stop-color': '#ffe9a8', 'stop-opacity': '0.95' }, glow);
+  el('stop', { offset: '45%', 'stop-color': '#ffc45e', 'stop-opacity': '0.5' }, glow);
+  el('stop', { offset: '100%', 'stop-color': '#ff9a3d', 'stop-opacity': '0' }, glow);
+  const core = el('radialGradient', { id: 'sunCoreG', cx: '38%', cy: '35%', r: '80%' }, defs);
+  el('stop', { offset: '0%', 'stop-color': '#fff6d8' }, core);
+  el('stop', { offset: '60%', 'stop-color': '#ffce68' }, core);
+  el('stop', { offset: '100%', 'stop-color': '#e8952f' }, core);
+
+  const SKY_R = 100 - SKY_ORBIT;
+  const sun = el('g', { id: 'sunMark', opacity: 0 });
+  el('title', {}, sun).textContent = '';
+  el('circle', { cx: 100, cy: SKY_R, r: 7.5, fill: 'url(#sunGlowG)' }, sun);
+  el('circle', { cx: 100, cy: SKY_R, r: 3.1, fill: 'url(#sunCoreG)', stroke: 'rgba(255,246,216,0.6)', 'stroke-width': 0.4 }, sun);
+
+  const moon = el('g', { id: 'moonMark', opacity: 0 });
+  el('title', {}, moon).textContent = '';
+  el('circle', { cx: 100, cy: SKY_R, r: 3.3, fill: '#141b2c', stroke: 'rgba(220,228,246,0.35)', 'stroke-width': 0.45 }, moon);
+  el('path', { id: 'moonLit', d: '', fill: '#dde4f2' }, moon);
+}
+
+const SKY_ORBIT = 90.5; // orbit radius of the sun/moon pips (SVG units)
+
+function updateSky() {
+  const o = state.origin;
+  if (!o) return;
+  const now = new Date();
+  const sun = sunPosition(now, o.lat, o.lon);
+  const moon = moonPosition(now, o.lat, o.lon);
+  const { phase, fraction } = moonIllumination(now);
+
+  const place = (id, pos) => {
+    const g = $(id);
+    g.setAttribute('transform', `rotate(${pos.azimuth} 100 100)`);
+    g.setAttribute('opacity', pos.altitude >= 0 ? 1 : 0.32);
+    const alt = Math.round(Math.abs(pos.altitude));
+    g.querySelector('title').textContent =
+      `${id === 'sunMark' ? 'Sun' : 'Moon'} · ${cardinal(pos.azimuth)} · ${alt}° ${pos.altitude >= 0 ? 'above' : 'below'} horizon`;
+  };
+  place('sunMark', sun);
+  place('moonMark', moon);
+  $('moonLit').setAttribute('d', moonPhasePath(100, 100 - SKY_ORBIT, 3.3, phase));
+  $('moonMark').querySelector('title').textContent += ` · ${Math.round(fraction * 100)}% lit`;
 }
 
 // ---------- rendering ----------
@@ -137,6 +185,7 @@ function setOrigin(origin) {
   state.origin = origin;
   $('originLabel').textContent = `From: ${origin.label}`;
   update();
+  updateSky();
 }
 
 function requestGeolocation() {
@@ -258,6 +307,7 @@ function init() {
 
   $('funFact').addEventListener('click', nextFact);
   setInterval(nextFact, 6000);
+  setInterval(updateSky, 60000); // sun/moon drift ~0.25°/min
 
   $('shareBtn').addEventListener('click', async () => {
     if (!state.target) return;
