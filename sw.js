@@ -1,7 +1,7 @@
 // Cache-first app shell so the compass works offline for the last state.
 // Geocoding requests (nominatim) are network-only.
 
-const CACHE = 'whereisit-v5';
+const CACHE = 'whereisit-v6';
 const SHELL = [
   './',
   './index.html',

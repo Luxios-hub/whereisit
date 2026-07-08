@@ -97,27 +97,30 @@ function buildDial() {
   const SKY_R = 100 - SKY_ORBIT;
   const sun = el('g', { id: 'sunMark', opacity: 0 });
   el('title', {}, sun).textContent = '';
-  el('circle', { cx: 100, cy: SKY_R, r: 13, fill: 'url(#sunGlowG)' }, sun);
+  el('circle', { cx: 100, cy: SKY_R, r: 32, fill: 'url(#sunGlowG)' }, sun);
   for (let i = 0; i < 8; i++) {
-    const a = (i * 45 * Math.PI) / 180;
+    const a = ((i * 45 + 22.5) * Math.PI) / 180;
     el('line', {
-      x1: 100 + 7.2 * Math.cos(a), y1: SKY_R + 7.2 * Math.sin(a),
-      x2: 100 + 9.8 * Math.cos(a), y2: SKY_R + 9.8 * Math.sin(a),
-      stroke: '#ffce68', 'stroke-width': 1.4, 'stroke-linecap': 'round', opacity: 0.9,
+      x1: 100 + 17.5 * Math.cos(a), y1: SKY_R + 17.5 * Math.sin(a),
+      x2: 100 + 25.5 * Math.cos(a), y2: SKY_R + 25.5 * Math.sin(a),
+      stroke: '#ffce68', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.95,
     }, sun);
   }
-  el('circle', { cx: 100, cy: SKY_R, r: 5.4, fill: 'url(#sunCoreG)', stroke: 'rgba(255,246,216,0.6)', 'stroke-width': 0.5 }, sun);
+  el('circle', { cx: 100, cy: SKY_R, r: 13.5, fill: 'url(#sunCoreG)', stroke: 'rgba(255,246,216,0.6)', 'stroke-width': 1 }, sun);
 
   const moon = el('g', { id: 'moonMark', opacity: 0 });
   el('title', {}, moon).textContent = '';
   // Inner group counter-rotates so the crescent stays upright on screen.
   const moonSprite = el('g', { id: 'moonSprite' }, moon);
-  el('circle', { cx: 100, cy: SKY_R, r: 10.5, fill: 'url(#moonGlowG)' }, moonSprite);
-  el('circle', { cx: 100, cy: SKY_R, r: 5.8, fill: '#141b2c', stroke: 'rgba(220,228,246,0.4)', 'stroke-width': 0.55 }, moonSprite);
+  el('circle', { cx: 100, cy: SKY_R, r: 26, fill: 'url(#moonGlowG)' }, moonSprite);
+  el('circle', { cx: 100, cy: SKY_R, r: 14.5, fill: '#141b2c', stroke: 'rgba(220,228,246,0.4)', 'stroke-width': 1.1 }, moonSprite);
   el('path', { id: 'moonLit', d: '', fill: '#e3e9f6' }, moonSprite);
 }
 
-const SKY_ORBIT = 109; // orbit radius of the sun/moon sprites — outside the bezel (r≈94)
+// Orbit radius of the sun/moon sprites (SVG units, compass center = 100).
+// Knurled outer edge ends at ~95.5; sprites reach inward ~26, so 128 keeps
+// them fully clear of the compass with a visible gap.
+const SKY_ORBIT = 128;
 
 function updateSky() {
   const o = state.origin;
@@ -138,7 +141,7 @@ function updateSky() {
   place('sunMark', sun);
   place('moonMark', moon);
   $('moonSprite').setAttribute('transform', `rotate(${-moon.azimuth} 100 ${100 - SKY_ORBIT})`);
-  $('moonLit').setAttribute('d', moonPhasePath(100, 100 - SKY_ORBIT, 5.8, phase));
+  $('moonLit').setAttribute('d', moonPhasePath(100, 100 - SKY_ORBIT, 14.5, phase));
   $('moonMark').querySelector('title').textContent += ` · ${Math.round(fraction * 100)}% lit`;
 }
 

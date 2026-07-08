@@ -166,10 +166,10 @@ main {
 
 .compass {
   position: relative;
-  width: min(72vw, 300px);
+  width: min(56vw, 244px);
   aspect-ratio: 1;
-  /* sun/moon sprites orbit outside the bezel */
-  margin: 34px 0 26px;
+  /* sun/moon sprites orbit well outside the bezel — leave room all around */
+  margin: 74px 0 64px;
   filter: drop-shadow(0 22px 40px rgba(0, 0, 0, 0.55));
 }
 
