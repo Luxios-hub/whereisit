@@ -14,8 +14,8 @@ const state = {
   factIndex: 0,
 };
 
-const dialRotator = new SmoothRotator($('dial'));
-const needleRotator = new SmoothRotator($('needle'));
+const dialRotator = new SmoothRotator($('dial'), { stiffness: 0.22, damping: 0.62 }); // tight, no wobble
+const needleRotator = new SmoothRotator($('needle')); // springy: overshoots and settles
 
 // ---------- compass dial (ticks + cardinal labels) ----------
 

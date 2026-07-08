@@ -102,16 +102,42 @@ export class Compass {
   }
 }
 
-// Rotates elements to a target angle without the 359→0 "spin around" glitch:
-// keeps a continuous (unbounded) angle and always moves by the shortest arc.
+// Rotates elements to a target angle without the 359→0 "spin around" glitch
+// (continuous unbounded angle, shortest arc), animated as a damped spring so
+// the needle overshoots and settles like a real magnetized needle.
 export class SmoothRotator {
-  constructor(el) {
+  constructor(el, { stiffness = 0.09, damping = 0.82 } = {}) {
     this.el = el;
     this.angle = 0;
+    this.target = 0;
+    this.velocity = 0;
+    this.stiffness = stiffness;
+    this.damping = damping;
+    this._raf = null;
+    this._instant = matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
   set(targetDeg) {
-    this.angle += angleDelta(((this.angle % 360) + 360) % 360, ((targetDeg % 360) + 360) % 360);
+    this.target += angleDelta(((this.target % 360) + 360) % 360, ((targetDeg % 360) + 360) % 360);
+    if (this._instant) {
+      this.angle = this.target;
+      this.el.style.transform = `rotate(${this.angle}deg)`;
+      return;
+    }
+    if (this._raf === null) this._raf = requestAnimationFrame(() => this._tick());
+  }
+
+  _tick() {
+    this.velocity += (this.target - this.angle) * this.stiffness;
+    this.velocity *= this.damping;
+    this.angle += this.velocity;
+    if (Math.abs(this.velocity) < 0.02 && Math.abs(this.target - this.angle) < 0.05) {
+      this.angle = this.target;
+      this.velocity = 0;
+      this._raf = null;
+    } else {
+      this._raf = requestAnimationFrame(() => this._tick());
+    }
     this.el.style.transform = `rotate(${this.angle}deg)`;
   }
 }

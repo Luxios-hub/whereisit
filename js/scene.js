@@ -44,6 +44,9 @@ export function initScene(canvas) {
   const glint = makeGlintSprite(44);
   let stars = [];
   let w = 0, h = 0, dpr = 1;
+  // Parallax: target offset set from outside, eased in the draw loop.
+  // Bigger (closer) stars drift more.
+  let px = 0, py = 0, tx = 0, ty = 0;
 
   function resize() {
     dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -62,11 +65,14 @@ export function initScene(canvas) {
   }
 
   function draw(t) {
+    px += (tx - px) * 0.06;
+    py += (ty - py) * 0.06;
     ctx.clearRect(0, 0, w, h);
     for (const st of stars) {
       const tw = reduced ? 1 : 0.72 + 0.28 * Math.sin(st.phase + t * 0.001 * st.speed);
+      const depth = st.s / (9 * dpr);
       ctx.globalAlpha = st.a * tw;
-      ctx.drawImage(st.sprite, st.x - st.s / 2, st.y - st.s / 2, st.s, st.s);
+      ctx.drawImage(st.sprite, st.x - st.s / 2 + px * depth * dpr, st.y - st.s / 2 + py * depth * dpr, st.s, st.s);
     }
     ctx.globalAlpha = 1;
   }
@@ -79,6 +85,20 @@ export function initScene(canvas) {
 
   resize();
   addEventListener('resize', resize);
+
+  // Desktop: follow the pointer. Mobile: follow device tilt (fires without
+  // permission on Android; on iOS once the compass permission is granted).
+  addEventListener('pointermove', (e) => {
+    tx = (e.clientX / innerWidth - 0.5) * 26;
+    ty = (e.clientY / innerHeight - 0.5) * 16;
+  }, { passive: true });
+  addEventListener('deviceorientation', (e) => {
+    if (typeof e.gamma === 'number' && typeof e.beta === 'number') {
+      tx = Math.max(-1, Math.min(1, e.gamma / 45)) * 22;
+      ty = Math.max(-1, Math.min(1, (e.beta - 45) / 45)) * 14;
+    }
+  }, { passive: true });
+
   if (reduced) {
     draw(0);
   } else {
